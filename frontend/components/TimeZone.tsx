@@ -30,11 +30,13 @@ const timezones = [
   "Australia/Sydney",
 ];
 
-function convertTime(time: string, from: string, to: string) {
+function convertTime(
+  time: string,
+  from: string,
+  to: string
+): { converted?: string; error?: string } {
   if (!time || !from || !to) return { error: "Please provide all fields." };
 
-  // time format: "HH:mm" (24hr)
-  // We'll assume today as date
   const today = DateTime.local().setZone(from);
   const [hour, minute] = time.split(":").map(Number);
   if (
@@ -47,16 +49,14 @@ function convertTime(time: string, from: string, to: string) {
   )
     return { error: "Invalid time format." };
 
-  // create DateTime in from_timezone
   const dt = today.set({ hour, minute, second: 0, millisecond: 0 });
   if (!dt.isValid) return { error: "Invalid input time or timezone." };
 
   const converted = dt.setZone(to);
   if (!converted.isValid) return { error: "Invalid target timezone." };
 
-  // Format result as: "HH:mm, dd MMM yyyy (Z)"
   const result = converted.toFormat("HH:mm, dd LLL yyyy (ZZZZ)");
-  return { converted: result, error: null };
+  return { converted: result };
 }
 
 export default function TimezoneConverter() {
@@ -70,9 +70,14 @@ export default function TimezoneConverter() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setResult(convertTime(time, fromTz, toTz));
+    const conversionResult = convertTime(time, fromTz, toTz);
+    setResult(conversionResult);
   };
-
+    const handleTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const { value } = e.target;
+        if (value === "from") setFromTz(e.target.value);
+        else if (value === "to") setToTz(e.target.value);
+    };
   return (
     <Card className="max-w-lg mx-auto my-8 shadow-xl rounded-2xl">
       <CardHeader className="flex flex-row items-center gap-3">
